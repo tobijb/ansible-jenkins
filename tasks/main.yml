@@ -1,0 +1,13 @@
+---
+
+# Install Jenkins
+- include: install.yml
+
+# Configure Jenkins Core
+- include: configure_core.yml
+
+# Configure Jenkins Plugins
+- include: configure_plugins.yml
+
+# Configure Jenkins Jobs
+- include: configure_jobs.yml

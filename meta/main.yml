@@ -1,0 +1,17 @@
+---
+
+dependencies:
+  - role: debops.secret
+
+  - role: debops.etc_services
+    etc_services_dependent_list:
+
+      - name: 'jenkins'
+        port: '{{ jenkins_port }}'
+        comment: 'Jenkins'
+
+  - role: debops.nginx
+    nginx_servers: [ '{{ jenkins_nginx_server }}' ]
+    nginx_upstreams: [ '{{ jenkins_nginx_upstream }}' ]
+    when: (jenkins_dependencies is defined and jenkins_dependencies)
+    tags: nginx

@@ -1,0 +1,38 @@
+# nginx upstream configuration for Jenkins service
+jenkins_nginx_upstream:
+  enabled: True
+  type: 'http'
+  name: 'jenkins'
+  server: 'localhost:8080'
+
+# nginx server configuration for Jenkins
+jenkins_nginx_server:
+  by_role: 'debops.jenkins'
+  enabled: True
+  type: 'http'
+  name: '{{ jenkins_hostname }}'
+  #root: '{{  }}/public'
+
+  access_policy: '{{ jenkins_nginx_access_policy }}'
+  auth_basic_realm: '{{ jenkins_nginx_auth_realm }}'
+
+  error_pages:
+    '502': '/502.html'
+
+  options: |
+    client_max_body_size {{ jenkins_nginx_client_max_body_size }};
+
+  location:
+    '/': |
+      try_files $uri $uri/index.html $uri.html @jenkins;
+
+    '@gitlab': |
+      gzip off;
+      proxy_read_timeout {{ jenkins_nginx_proxy_timeout }};
+      proxy_connect_timeout {{ jenkins_nginx_proxy_timeout }};
+      proxy_redirect     off;
+      proxy_set_header   X-Forwarded-Proto $scheme;
+      proxy_set_header   Host              $http_host;
+      proxy_set_header   X-Real-IP         $remote_addr;
+      proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+      proxy_pass         http://jenkins;
