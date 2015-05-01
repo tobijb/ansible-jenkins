@@ -15,3 +15,12 @@ dependencies:
     nginx_upstreams: [ '{{ jenkins_nginx_upstream }}' ]
     when: (jenkins_dependencies is defined and jenkins_dependencies)
     tags: nginx
+
+  - role: debops.ferm
+    ferm_input_list:
+
+      - type: 'dport_accept'
+        dport: [ 'http-alt' ]
+        saddr: '{{ jenkins_allow }}'
+        filename: 'jenkins_dependency_accept'
+        weight: '20'

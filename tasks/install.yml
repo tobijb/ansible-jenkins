@@ -9,7 +9,7 @@
 ##  Geerlingguy!  https://github.com/geerlingguy/ansible-role-jenkins for a lot of code!
 
 - name: Install External APT source key
-  apt_key:
+apt_key:
     url: '{{ jenkins_repo_key_url }}'
     state: present
 
@@ -24,11 +24,11 @@
     pkg: jenkins 
     state: latest
 
-- name: Create external directory to install jenkins-cli and jenkins-job-builder
+- name: Create external directory to supporting tools 
   file:
     path: '{{ item }}'
-    owner: '{{ jenkins_user }}'
-    group: '{{ jenkins_group }}'
+    owner: '{{ jenkins_system_user }}'
+    group: '{{ jenkins_system_group }}'
     state: directory
   with_items:
     - '{{ jenkins_ext_root }}'
@@ -53,20 +53,23 @@
   get_url:
     url: "http://{{ jenkins_hostname }}:8080/jnlpJars/jenkins-cli.jar"
     dest: "{{ jenkins_ext_cli_root }}/jenkins-cli"
-    owner: '{{ jenkins_user }}'
-    group: '{{ jenkins_group }}'
-  register: jarfile_get
-  until: "'OK' in jarfile_get.msg or 'file already exists' in jarfile_get.msg"
+    owner: '{{ jenkins_system_user }}'
+    group: '{{ jenkins_system_group }}'
+  register: jenkins_jarfile_get
+  until: "'OK' in jenkins_jarfile_get.msg or 'file already exists' in jenkins_jarfile_get.msg"
   retries: "{{ jenkins_connection_retries }}"
   delay: "{{ jenkins_connection_delay }}"
+
+- name: Set persistent command for jenkins-cli actions
+  set_fact: jenkins_cli="java -jar {{ jenkins_jarfile_get.dest }} -s {{ jenkins_url }}"
 
 # Jenkins doesn't allow updates via CLI, though that is required before plugins
 # can be installed via CLI. See: https://gist.github.com/rowan-m/1026918
 - name: Create Jenkins updates folder.
   file:
     path: /var/lib/jenkins/updates
-    owner: '{{ jenkins_user }}'
-    group: '{{ jenkins_group }}'
+    owner: '{{ jenkins_system_user }}'
+    group: '{{ jenkins_system_group }}'
     mode: 0755
     state: directory
 
@@ -77,13 +80,13 @@
 - name: Permissions for default.json updates info.
   file:
     path: /var/lib/jenkins/updates/default.json
-    owner: '{{ jenkins_user }}'
-    group: '{{ jenkins_group }}'
+    owner: '{{ jenkins_system_user }}'
+    group: '{{ jenkins_system_group }}'
     mode: 0755
 
 - name: Install Jenkins plugins.
   command: >
-    java -jar {{ jenkins_ext_cli_root }}/jenkins-cli -s http://{{ jenkins_hostname }}:8080/ install-plugin {{ item }}
+    {{ jenkins_cli }} install-plugin {{ item }}
     creates=/var/lib/jenkins/plugins/{{ item }}.jpi
   with_items: jenkins_plugins
   notify: restart jenkins

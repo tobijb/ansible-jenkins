@@ -4,3 +4,27 @@
 ## Configure Jenkins Core
 ##
 
+- name: Ensure jenkins_ext_groovy_root exists
+  file:
+    path: '{{ jenkins_ext_groovy_root }}'
+    state: directory
+
+- name: Generate Groovy Script template for global security and admin user
+  template:
+    src: 'groovy/run_once/{{ item }}.groovy.j2'
+    dest: '{{ jenkins_ext_groovy_root }}/{{ item }}.groovy'
+  with_flattened:
+    - jenkins_groovy_scripts_run_once
+    - jenkins_groovy_scripts_run_always
+
+- name: Run Groovy scripts using jenkins-cli (one-time)
+  shell: '{{ jenkins_cli }} groovy {{ jenkins_ext_groovy_root }}/{{ item }}.groovy && touch {{ jenkins_ext_groovy_root }}/{{ item }}.groovy.completed'
+  args:
+    creates: '{{ jenkins_ext_groovy_root }}/{{ item }}.groovy.completed'
+  with_items: jenkins_groovy_scripts_run_once
+
+- name: Run Groovy scripts using jenkins-cli (always)
+  shell: '{{ jenkins_cli }} groovy {{ item }}.groovy'
+  args:
+    chdir: '{{ jenkins_ext_groovy_root }}'
+  with_items: jenkins_groovy_scripts_run_always

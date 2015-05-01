@@ -1,3 +1,6 @@
 ---
 
 pki: False
+
+jenkins_allow: 
+  - 0.0.0.0/0

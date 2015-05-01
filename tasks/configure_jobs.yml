@@ -19,13 +19,13 @@
     bare: True
     update: True
     accept_hostkey: True
+    version: '{{ item.version | default("HEAD") }}'
   sudo_user: '{{ jenkins_user | default("jenkins") }}' # Git can use ~/.ssh/config here
   with_flattened:
     - jenkins_job_builder_repos
 
 - name: Run jenkins-job-builder against the configured instance
-  debug: msg="jenkins-jobs test {{ jenkins_ext_job_builder_root }}/{{ item.0.name }} {{ item.1 }}"
-  #sudo_user: '{{ jenkins_user | default("jenkins") }}'
+  shell: "{{ jenkins_jobs }} test {{ jenkins_ext_job_builder_repos_dir }}/{{ item.0.name }} {{ item.1 }}"
   with_subelements:
     - jenkins_job_builder_repos
     - filters

@@ -1,0 +1,23 @@
+import java.util.logging.Logger
+import jenkins.model.*
+import hudson.security.*
+
+def instance = Jenkins.getInstance()
+
+def user = '{{ jenkins_service_user }}'
+def password = '{{ jenkins_service_password }}'
+
+try {
+  if (instance.isUseSecurity()) {
+    println(">>>>>>>> Security has already been configured.. skipping..")
+  } else {
+    def hudsonRealm = new HudsonPrivateSecurityRealm(false)
+    println(">>>>>>>> Adding User " + user + " and enabling Global Security")
+    hudsonRealm.createAccount(user, password)
+    instance.setSecurityRealm(hudsonRealm)
+    instance.save()
+  }
+} catch(e) {
+  println("ERROR:\n" + e.msg)
+  System.exit(1)
+}

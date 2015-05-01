@@ -19,16 +19,27 @@ jenkins_ext_root: '/srv/jenkins'
 jenkins_ext_cli_root: '{{ jenkins_ext_root }}/jenkins-cli'
 jenkins_ext_job_builder_root: '{{ jenkins_ext_root }}/jenkins-job-builder'
 jenkins_ext_job_builder_repos_dir: '{{ jenkins_ext_job_builder_root }}/repos'
+jenkins_ext_groovy_root: '{{ jenkins_ext_root }}/jenkins-groovy'
+jenkins_jobs: 'jenkins-jobs'
 
-jenkins_user: 'jenkins'
-jenkins_group: 'jenkins'
+jenkins_groovy_scripts_run_once:
+  - configure_global_security_and_add_default_user
+jenkins_groovy_scripts_run_always: []
 
+jenkins_system_user: 'jenkins'
+jenkins_system_group: 'jenkins'
+
+jenkins_service_user: 'default_admin'
+jenkins_service_password: 'password'
+
+# This will run test and update actions in jenkins-jobs on the instance
+# defined in jenkins_url.
 jenkins_job_builder_repos:
-  - name: 'project_config'
-    repo: 'git@github.com:gittobi/project_config'
+  - name: 'example'
+    repo: 'https://github.com/tobijb/jenkins-job-builder-example.git'
     jenkins_url: '{{ jenkins_url }}'
     filters:
-      - 'staging*'
+      - 'development*'
 
 # -- Nginx Settings --
 # Domain which will be used for nginx server
