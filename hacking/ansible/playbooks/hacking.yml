@@ -1,0 +1,15 @@
+---
+## Common debops roles
+    
+
+- { include: ../../debops-playbooks/playbooks/site.yml }
+
+- name: Run local role on Ubuntu Trusty 14.04 Vagrant host
+  hosts: 'debops_jenkins'
+  gather_facts: True
+  sudo: True
+
+  roles:
+    - { role: debops.jenkins, tags: [ 'jenkins', 'hacking' ] }
+
+

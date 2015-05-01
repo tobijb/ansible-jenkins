@@ -15,7 +15,7 @@
 
 - name: Install External APT source
   apt_repository:
-    repo: "{{ jenkins_repo_url }}"
+    repo: '{{ jenkins_repo_url }}'
     state: present
     update_cache: yes
 
@@ -23,6 +23,17 @@
   apt: 
     pkg: jenkins 
     state: latest
+
+- name: Create external directory to install jenkins-cli and jenkins-job-builder
+  file:
+    path: '{{ item }}'
+    owner: '{{ jenkins_user }}'
+    group: '{{ jenkins_group }}'
+    state: directory
+  with_items:
+    - '{{ jenkins_ext_root }}'
+    - '{{ jenkins_ext_cli_root }}'
+    - '{{ jenkins_ext_job_builder_root }}'
 
 - name: Ensure Jenkins is started and runs on startup.
   service: 
@@ -41,7 +52,9 @@
 - name: Get the jenkins-cli jarfile from the Jenkins server.
   get_url:
     url: "http://{{ jenkins_hostname }}:8080/jnlpJars/jenkins-cli.jar"
-    dest: "{{ jenkins_cli_jar_location }}"
+    dest: "{{ jenkins_ext_cli_root }}/jenkins-cli"
+    owner: '{{ jenkins_user }}'
+    group: '{{ jenkins_group }}'
   register: jarfile_get
   until: "'OK' in jarfile_get.msg or 'file already exists' in jarfile_get.msg"
   retries: "{{ jenkins_connection_retries }}"
@@ -52,8 +65,8 @@
 - name: Create Jenkins updates folder.
   file:
     path: /var/lib/jenkins/updates
-    owner: jenkins
-    group: jenkins
+    owner: '{{ jenkins_user }}'
+    group: '{{ jenkins_group }}'
     mode: 0755
     state: directory
 
@@ -64,13 +77,18 @@
 - name: Permissions for default.json updates info.
   file:
     path: /var/lib/jenkins/updates/default.json
-    owner: jenkins
-    group: jenkins
+    owner: '{{ jenkins_user }}'
+    group: '{{ jenkins_group }}'
     mode: 0755
 
 - name: Install Jenkins plugins.
   command: >
-    java -jar {{ jenkins_cli_jar_location }} -s http://{{ jenkins_hostname }}:8080/ install-plugin {{ item }}
+    java -jar {{ jenkins_ext_cli_root }}/jenkins-cli -s http://{{ jenkins_hostname }}:8080/ install-plugin {{ item }}
     creates=/var/lib/jenkins/plugins/{{ item }}.jpi
   with_items: jenkins_plugins
   notify: restart jenkins
+
+- name: Install jenkins-job-builder
+  apt:
+    pkg: jenkins-job-builder
+    state: present

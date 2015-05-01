@@ -6,18 +6,33 @@ jenkins_connection_delay: 5
 jenkins_connection_retries: 60
 jenkins_hostname: 'localhost'  # This URL should be directly accessible from your browser
 jenkins_port: '8080'           # Not implemented yet
+jenkins_scheme: 'http'           # Not implemented yet
 jenkins_max_memory: '1024m'    # http://stackoverflow.com/questions/14763079/what-are-the-xms-and-xmx-parameters-when-starting-jvms
 jenkins_plugins:
   - git
   - ssh
+jenkins_url: '{{ jenkins_scheme }}://{{ jenkins_hostname }}:{{ jenkins_port }}'
 
 jenkins_repo_url: 'deb http://pkg.jenkins-ci.org/debian binary/'
 jenkins_repo_key_url: 'https://jenkins-ci.org/debian/jenkins-ci.org.key'
-jenkins_cli_jar_location: '/usr/local/bin/jenkins-cli'
+jenkins_ext_root: '/srv/jenkins'
+jenkins_ext_cli_root: '{{ jenkins_ext_root }}/jenkins-cli'
+jenkins_ext_job_builder_root: '{{ jenkins_ext_root }}/jenkins-job-builder'
+jenkins_ext_job_builder_repos_dir: '{{ jenkins_ext_job_builder_root }}/repos'
+
+jenkins_user: 'jenkins'
+jenkins_group: 'jenkins'
+
+jenkins_job_builder_repos:
+  - name: 'project_config'
+    repo: 'git@github.com:gittobi/project_config'
+    jenkins_url: '{{ jenkins_url }}'
+    filters:
+      - 'staging*'
 
 # -- Nginx Settings --
 # Domain which will be used for nginx server
-jenkins_nginx_auth_realm: 'GitLab access is restricted'
+jenkins_nginx_auth_realm: 'Jenkins access is restricted'
 # Name of webserver access policy to enable (see 'debops.nginx' role)
 jenkins_nginx_access_policy: ""
 # nginx client_max_body_size value

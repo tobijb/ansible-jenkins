@@ -4,3 +4,28 @@
 ## Configure Jenkins Jobs
 ##
 
+## This uses jenkins-job-builder
+## http://ci.openstack.org/jenkins-job-builder/
+## Inspiration from https://github.com/Azulinho/ansible-jenkins-showcase
+
+# Clone the jenkins-job-builder repos, these are the repos full of definitions of Jenkins jobs.
+# The jobs change frequently and should be part of a CD pipeline if possible to provide self-service
+# job management.
+# TODO: Should we check for the github.key in /etc/ssh/ssh_known_hosts?
+- name: Clone jenkins-job-builder repos full of job definitions
+  git:
+    repo: '{{ item.repo }}'
+    dest: '{{ jenkins_ext_job_builder_repos_dir }}/{{ item.name }}'
+    bare: True
+    update: True
+    accept_hostkey: True
+  sudo_user: '{{ jenkins_user | default("jenkins") }}' # Git can use ~/.ssh/config here
+  with_flattened:
+    - jenkins_job_builder_repos
+
+- name: Run jenkins-job-builder against the configured instance
+  debug: msg="jenkins-jobs test {{ jenkins_ext_job_builder_root }}/{{ item.0.name }} {{ item.1 }}"
+  #sudo_user: '{{ jenkins_user | default("jenkins") }}'
+  with_subelements:
+    - jenkins_job_builder_repos
+    - filters

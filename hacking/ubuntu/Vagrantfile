@@ -7,7 +7,18 @@ Vagrant.configure("2") do |config|
   config.vm.network :forwarded_port, guest: 80, host: 8099
   config.vm.network :forwarded_port, guest: 443, host: 44399
 
-  config.vm.define 'ubuntu1404-amd64' do |instance|
+  config.landrush.enabled = true
+
+  config.vm.post_up_message = <<-EOH
+  
+  EOH
+
+  config.vm.define 'ubuntu1404.vagrant.dev' do |instance|
+    config.vm.hostname = 'ubuntu1404.vagrant.dev'
+    config.vm.provider "virtualbox" do |v|
+      v.memory = 1024
+      v.cpus = 2
+    end
 
     # Every Vagrant virtual environment requires a box to build off of.
     instance.vm.box = 'ubuntu1404-amd64'
@@ -19,8 +30,11 @@ Vagrant.configure("2") do |config|
     # View the documentation for the provider you're using for more
     # information on available options.
     config.vm.provision "ansible" do |ansible|
-      ansible.playbook = "../hacking.yml"
+      ansible.playbook = "../ansible/playbooks/hacking.yml"
       ansible.verbose = 'vv'
+      ansible.extra_vars = { ansible_ssh_user: 'vagrant' }
+      ansible.inventory_path = "../ansible/inventory/hosts"
+      #ansible.tags = 'hacking' # Use this after the first run to speed things up a bit
     end
   end
 end
