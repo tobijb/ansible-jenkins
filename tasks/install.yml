@@ -9,7 +9,7 @@
 ##  Geerlingguy!  https://github.com/geerlingguy/ansible-role-jenkins for a lot of code!
 
 - name: Install External APT source key
-apt_key:
+  apt_key:
     url: '{{ jenkins_repo_key_url }}'
     state: present
 
@@ -42,7 +42,7 @@ apt_key:
     enabled: yes
 
 - name: Wait for Jenkins to start up before proceeding.
-  shell: curl --head --silent http://{{ jenkins_hostname }}:8080/cli/
+  shell: curl --head --silent {{ jenkins_url }}/cli/
   register: result
   until: result.stdout.find("200 OK") != -1
   retries: "{{ jenkins_connection_retries }}"
@@ -51,7 +51,7 @@ apt_key:
 
 - name: Get the jenkins-cli jarfile from the Jenkins server.
   get_url:
-    url: "http://{{ jenkins_hostname }}:8080/jnlpJars/jenkins-cli.jar"
+    url: "{{ jenkins_url }}/jnlpJars/jenkins-cli.jar"
     dest: "{{ jenkins_ext_cli_root }}/jenkins-cli"
     owner: '{{ jenkins_system_user }}'
     group: '{{ jenkins_system_group }}'
@@ -88,10 +88,22 @@ apt_key:
   command: >
     {{ jenkins_cli }} install-plugin {{ item }}
     creates=/var/lib/jenkins/plugins/{{ item }}.jpi
-  with_items: jenkins_plugins
+  with_flattened: 
+    - jenkins_plugins
+    - jenkins_group_plugins
+    - jenkins_host_plugins
   notify: restart jenkins
 
 - name: Install jenkins-job-builder
-  apt:
-    pkg: jenkins-job-builder
+  pip:
+    name: '{{ item }}'
     state: present
+  with_items:
+    - PyYAML
+    - python-jenkins
+    - jenkins-job-builder
+
+- name: Configure jenkins-job-builder
+  template: 
+    src: jenkins-job-builder/config.ini.j2
+    dest: '{{ jenkins_ext_job_builder_config }}'

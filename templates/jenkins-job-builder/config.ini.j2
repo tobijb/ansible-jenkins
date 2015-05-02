@@ -1,0 +1,15 @@
+[job_builder]
+ignore_cache=True
+keep_descriptions=False
+include_path=.:scripts
+recursive=False
+exclude=.*:manual
+allow_duplicates={{ jenkins_job_builder_config_allow_duplicates }}
+
+[jenkins]
+user={{ jenkins_service_user }}
+password={{ jenkins_service_password }}
+url={{ jenkins_url }}
+
+[hipchat]
+authtoken={{ jenkins_hipchat_token }}

@@ -16,16 +16,18 @@
   git:
     repo: '{{ item.repo }}'
     dest: '{{ jenkins_ext_job_builder_repos_dir }}/{{ item.name }}'
-    bare: True
     update: True
     accept_hostkey: True
     version: '{{ item.version | default("HEAD") }}'
-  sudo_user: '{{ jenkins_user | default("jenkins") }}' # Git can use ~/.ssh/config here
   with_flattened:
     - jenkins_job_builder_repos
+  tags:
+    - dev
 
 - name: Run jenkins-job-builder against the configured instance
-  shell: "{{ jenkins_jobs }} test {{ jenkins_ext_job_builder_repos_dir }}/{{ item.0.name }} {{ item.1 }}"
+  shell: "{{ jenkins_job_builder }} update {{ jenkins_ext_job_builder_repos_dir }}/{{ item.0.name }}/{{ item.0.jobs_dir }} {{ item.1 }}"
   with_subelements:
     - jenkins_job_builder_repos
     - filters
+  tags:
+    - dev

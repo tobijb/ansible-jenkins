@@ -35,7 +35,8 @@ Vagrant.configure("2") do |config|
       ansible.verbose = 'vv'
       ansible.extra_vars = { ansible_ssh_user: 'vagrant' }
       ansible.inventory_path = "../ansible/inventory/hosts"
-      #ansible.tags = 'hacking' # Use this after the first run to speed things up a bit
+      ansible.tags = 'hacking' # Use this after the first run to speed things up a bit
+      #ansible.tags = 'dev' # Use this after the first run to speed things up a bit
     end
   end
 end
