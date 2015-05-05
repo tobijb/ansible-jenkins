@@ -1,6 +1,10 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+unless Vagrant.has_plugin?("landrush")
+    raise "\n\nMissing dependency!!!!!\n\nlandrush is not installed! vagrant plugin install landrush\n"
+end
+
 Vagrant.configure("2") do |config|
   config.vm.network :private_network, ip: "192.168.33.99"
   config.vm.network :forwarded_port, guest: 22, host: 2299
@@ -11,7 +15,7 @@ Vagrant.configure("2") do |config|
   config.landrush.enabled = true
 
   config.vm.post_up_message = <<-EOH
-  
+
   EOH
 
   config.vm.define 'ubuntu1404.vagrant.dev' do |instance|
