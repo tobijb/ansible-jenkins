@@ -31,4 +31,5 @@ tramp
 sftp-config.json
 
 #-- Hacking/Development related
+debops-playbooks
 hacking/debops-playbooks

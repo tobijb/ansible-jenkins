@@ -1,14 +1,7 @@
 ---
 
-pki: False
-
-jenkins_allow: 
+jenkins_allow:
   - 0.0.0.0/0
 
-jenkins_plugins:
+jenkins_group_plugins:
   - github-oauth
-  - jobConfigHistory
-  - audit-trail
-  - git
-  - ssh
-  - timestamper

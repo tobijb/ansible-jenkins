@@ -1,5 +1,22 @@
 ---
 
+- name: Create Jenkins group
+  group:
+    name: jenkins
+    gid: '{{ jenkins_system_uid_gid }}'
+
+- name: Create Jenkins user
+  user:
+    name: jenkins
+    system: yes
+    generate_ssh_key: yes
+    ssh_key_bits: 2048
+    ssh_key_file: '.ssh/id_rsa'
+    uid: '{{ jenkins_system_uid_gid }}'
+    group: jenkins
+    home: /var/lib/jenkins
+    shell: /bin/bash
+
 - name: Create jenkins external directory
   file:
     path: '{{ item }}'

@@ -7,6 +7,7 @@ jenkins_role: 'server' # 'server' or 'slave' or define your own..
 
 jenkins_system_user: 'jenkins'
 jenkins_system_group: 'jenkins'
+jenkins_system_uid_gid: '1998'
 
 jenkins_service_user: 'default_admin'
 jenkins_service_password: 'password'
@@ -15,7 +16,9 @@ jenkins_service_password: 'password'
 jenkins_connection_delay: 5
 jenkins_connection_retries: 10
 
-jenkins_hostname: 'localhost'  # This URL should be directly accessible from your browser
+jenkins_service_name: 'ci'
+
+jenkins_hostname: '{{ jenkins_service_name }}.{{ ansible_domain }}'  # This URL should be directly accessible from your browser
 jenkins_port: '8080'           # Not implemented yet
 jenkins_scheme: 'http'           # Not implemented yet
 

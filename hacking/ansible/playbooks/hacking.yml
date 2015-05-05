@@ -1,8 +1,11 @@
 ---
 ## Common debops roles
-    
 
-- { include: ../../debops-playbooks/playbooks/site.yml }
+- include: ../../debops-playbooks/playbooks/site.yml
+  # Vagrant Hack to keep this from happening in 2015
+  # https://github.com/mitchellh/vagrant/issues/2646
+  environment:
+    PATH: '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
 
 - name: Run local role on Ubuntu Trusty 14.04 Vagrant host
   hosts: 'debops_jenkins'
