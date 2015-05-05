@@ -1,0 +1,41 @@
+---
+
+- name: Create jenkins slave directories
+  file:
+    path: '{{ item }}'
+    owner: '{{ jenkins_system_user }}'
+    group: '{{ jenkins_system_group }}'
+    state: directory
+  with_items:
+    - '{{ jenkins_ext_jenkins_swarm_root }}'
+
+- name: Install Jenkins Swarm CLI
+  get_url:
+    url: '{{ jenkins_swarm_client_url }}'
+    dest: '{{ jenkins_ext_jenkins_swarm_root }}'
+    owner: '{{ jenkins_system_user }}'
+    group: '{{ jenkins_system_group }}'
+  register: jenkins_swarm_client
+  until: "'OK' in jenkins_swarm_client.msg or 'file already exists' in jenkins_swarm_client.msg"
+
+- name: Add password to environment file
+  copy:
+    content: 'JENKINS_SWARM_CLIENT_PASSWORD={{ jenkins_service_password }}\n'
+    dest: '/etc/default/jenkins-swarm-client'
+    owner: '{{ jenkins_system_user }}'
+    group: '{{ jenkins_system_group }}'
+    mode: '0640'
+
+- name: Create Jenkins Swarm Init script
+  template:
+    src: jenkins-swarm-client/jenkins-swarm-client.init.j2
+    dest: /etc/init.d/jenkins-swarm-client
+    mode: 0755
+  notify: restart jenkins-swarm-client
+
+- name: Start jenkins-swarm-client
+  service:
+    name:  jenkins-swarm-client
+    state: started
+  register: jenkins_swarm_client_service
+

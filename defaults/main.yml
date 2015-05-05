@@ -3,6 +3,8 @@
 #-- Required
 jenkins_dependencies: True
 
+jenkins_role: 'server' # 'server' or 'slave' or define your own..
+
 jenkins_system_user: 'jenkins'
 jenkins_system_group: 'jenkins'
 
@@ -29,6 +31,7 @@ jenkins_plugins:
   - timestamper
   - jobConfigHistory
   - audit-trail
+  - swarm
 jenkins_group_plugins: []
 jenkins_host_plugins: []
 
@@ -62,6 +65,12 @@ jenkins_ext_job_builder_config: '{{ jenkins_ext_job_builder_root }}/config.ini'
 jenkins_job_builder: 'jenkins-jobs --conf {{ jenkins_ext_job_builder_config }}'
 jenkins_job_builder_default_repo_dir: 'jobs'
 jenkins_job_builder_config_allow_duplicates: True
+
+# -- Jenkins Swarm related
+jenkins_ext_jenkins_swarm_root: '{{ jenkins_ext_root }}/jenkins-swarm-client'
+jenkins_swarm_client_url: 'http://maven.jenkins-ci.org/content/repositories/releases/org/jenkins-ci/plugins/swarm-client/1.24/swarm-client-1.24-jar-with-dependencies.jar'
+jenkins_swarm_labels_space_separated: 'swarm'
+jenkins_swarm_slave_executors: 1
 
 # -- Nginx Settings --
 # Domain which will be used for nginx server

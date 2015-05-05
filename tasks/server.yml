@@ -1,0 +1,14 @@
+---
+
+# Install Jenkins
+- { include: install_server.yml, tags: jenkins-server }
+
+# Configure Jenkins Core
+- { include: configure_core.yml, tags: jenkins-core }
+
+# Configure Jenkins Plugins
+- { include: configure_plugins.yml, tags: jenkins-plugins }
+
+# Configure Jenkins Jobs
+- { include: configure_jobs.yml, tags: jenkins-jobs }
+

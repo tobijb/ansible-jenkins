@@ -1,0 +1,12 @@
+---
+
+- name: Create jenkins external directory
+  file:
+    path: '{{ item }}'
+    owner: '{{ jenkins_system_user }}'
+    group: '{{ jenkins_system_group }}'
+    state: directory
+  with_items:
+    - '{{ jenkins_ext_root }}'
+
+

@@ -1,13 +1,10 @@
 ---
 
-# Install Jenkins
-- { include: install.yml, tags: jenkins-install }
+# Common prerequsites
+- { include: common.yml, jenkins-common }
 
-# Configure Jenkins Core
-- { include: configure_core.yml, tags: jenkins-core }
+# Install and Configure Jenkins according to the defined role
+- { include: server.yml, when: jenkins_role == 'server', tags: jenkins-server }
+- { include: slave.yml,  when: jenkins_role == 'slave', tags: jenkins-slave }
 
-# Configure Jenkins Plugins
-- { include: configure_plugins.yml, tags: jenkins-plugins }
 
-# Configure Jenkins Jobs
-- { include: configure_jobs.yml, tags: jenkins-jobs }

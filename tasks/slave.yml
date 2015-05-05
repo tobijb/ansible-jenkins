@@ -1,0 +1,5 @@
+---
+
+# Install Jenkins Swarm Client and any related Slave packages
+- { include: install_slave.yml, tags: jenkins-slave }
+

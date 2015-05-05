@@ -1,0 +1,251 @@
+#!/bin/bash
+
+## THIS FILE IS MANAGED BY ANSIBLE!!! ALL CHANGES WILL BE OVERWRITTEN!!
+
+# /etc/init.d/jenkins
+# debian-compatible jenkins-swarm-client startup script.
+# Amelia A Lewis <alewis@ibco.com>
+# Amended for jenkins-swarm-client by Josh Brown <josh.brown@tobi.com>
+#
+### BEGIN INIT INFO
+# Provides:          jenkins-swarm-client
+# Required-Start:    $remote_fs $syslog $network
+# Required-Stop:     $remote_fs $syslog $network
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Start jenkins-swarm-client at boot time
+# Description:       Controls Jenkins Swarm Client on a Jenkins 'Slave'
+### END INIT INFO
+
+PATH=/bin:/usr/bin:/sbin:/usr/sbin
+
+# -- JUST A NOTE -- #
+# Environment variables do not get passed to the Daemon the way you'd think
+# --inherit only inherits what has been exported.. Since files that are
+# sourced are not exported, you'll need to export them or pass them with --env
+
+# Static Variables
+DESC="jenkins-swarm-client"
+NAME="jenkins-swarm-client"
+SCRIPTNAME="/etc/init.d/$NAME"
+PIDFILE="/var/run/${NAME}.pid"
+JAVA="/etc/alternatives/java"
+JENKINS_HOME="/var/lib/jenkins"
+JENKINS_SWARM_LOG="/var/log/jenkins/${NAME}"
+JENKINS_SWARM_PASSWORD_VAR="JENKINS_SWARM_PASSWORD"
+
+# Jinja Templated variables
+JENKINS_USER={{ jenkins_system_user }}
+JENKINS_SWARM_JAR={{ jenkins_swarm_client.dest }}
+JENKINS_SWARM_ARGS="\
+      -master {{ jenkins_url }} \
+      -executors {{ jenkins_swarm_slave_executors }} \
+      -retry {{ jenkins_swarm_retries }}
+      -fsroot ${JENKINS_HOME} \
+      -labels \"{{ jenkins_swarm_labels_space_separated }}\" \
+      -username {{ jenkins_service_user }} \
+      -passwordEnvVariable ${JENKINS_SWARM_PASSWORD_VAR}"
+
+# Overrides
+[ -r /etc/default/$NAME ] && . /etc/default/$NAME
+
+DAEMON=/usr/bin/daemon
+DAEMON_ARGS="--name=$NAME --inherit --output=$JENKINS_SWARM_LOG --pidfile=$PIDFILE --user ${JENKINS_USER}"
+
+if [ -n "$UMASK" ]; then
+    DAEMON_ARGS="$DAEMON_ARGS --umask=$UMASK"
+fi
+
+# Exit if the package is not installed
+if [ ! -x "$DAEMON" ]; then
+    echo "daemon package not installed" >&2
+    exit 1
+fi
+
+# Exit if not supposed to run standalone
+if [ "$RUN_STANDALONE" = "false" ]; then
+    echo "Not configured to run standalone" >&2
+    exit 1
+fi
+
+# load environments
+if [ -r /etc/default/locale ]; then
+  . /etc/default/locale
+  export LANG LANGUAGE
+elif [ -r /etc/environment ]; then
+  . /etc/environment
+  export LANG LANGUAGE
+fi
+
+# Load the VERBOSE setting and other rcS variables
+. /lib/init/vars.sh
+
+# Define LSB log_* functions.
+# Depend on lsb-base (>= 3.0-6) to ensure that this file is present.
+. /lib/lsb/init-functions
+
+# Make sure we run as root
+if [ `id -u` -ne 0 ]; then
+    echo "The $NAME init script can only be run as root"
+    exit 1
+fi
+
+#
+# Function that starts the daemon/service
+#
+do_start()
+{
+    # the default location is /var/run/jenkins/jenkins-swarm-client.pid but the parent directory needs to be created
+    mkdir `dirname $PIDFILE` > /dev/null 2>&1 || true
+    chown $JENKINS_USER `dirname $PIDFILE`
+    # Return
+    #   0 if daemon has been started
+    #   1 if daemon was already running
+    #   2 if daemon could not be started
+    $DAEMON $DAEMON_ARGS --running && return 1
+
+    # notify of explicit umask
+    if [ -n "$UMASK" ]; then
+        [ "$VERBOSE" != no ] && echo Setting umask to $UMASK
+    fi
+
+    # Export because we don't want this to show in the ps output and it won't persist if we don't export it
+    export JENKINS_SWARM_PASSWORD
+
+    $DAEMON $DAEMON_ARGS -- $JAVA $JAVA_ARGS -jar $JENKINS_SWARM_JAR $JENKINS_SWARM_ARGS
+}
+
+
+#
+# Verify that all jenkins processes have been shutdown
+# and if not, then do killall for them
+#
+get_running()
+{
+    return `ps -U $JENKINS_USER --no-headers -f | egrep -e 'jenkins-swarm-client' | grep -c . `
+}
+
+force_stop()
+{
+    get_running
+    if [ $? -ne 0 ]; then
+      pkill -9 -u $JENKINS_USER jenkins-swarm-client || return 3
+    fi
+}
+
+# Get the status of the daemon process
+get_daemon_status()
+{
+    $DAEMON $DAEMON_ARGS --running || return 1
+}
+
+
+#
+# Function that stops the daemon/service
+#
+do_stop()
+{
+    # Return
+    #   0 if daemon has been stopped
+    #   1 if daemon was already stopped
+    #   2 if daemon could not be stopped
+    #   other if a failure occurred
+    get_daemon_status
+    case "$?" in
+  0)
+      $DAEMON $DAEMON_ARGS --stop || return 2
+        # wait for the process to really terminate
+        for n in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do
+            sleep 1
+            $DAEMON $DAEMON_ARGS --running || break
+        done
+        if get_daemon_status; then
+          force_stop || return 3
+        fi
+      ;;
+  *)
+      force_stop || return 3
+      ;;
+    esac
+
+    # Many daemons don't delete their pidfiles when they exit.
+    rm -f $PIDFILE
+    return 0
+}
+
+case "$1" in
+  start)
+    log_daemon_msg "Starting $DESC" "$NAME"
+    do_start
+    case "$?" in
+        0|1) log_end_msg 0 ;;
+        2) log_end_msg 1 ;;
+    esac
+    ;;
+  stop)
+    log_daemon_msg "Stopping $DESC" "$NAME"
+    do_stop
+    case "$?" in
+        0|1) log_end_msg 0 ;;
+        2) log_end_msg 1 ;;
+    esac
+    ;;
+  restart|force-reload)
+    #
+    # If the "reload" option is implemented then remove the
+    # 'force-reload' alias
+    #
+    log_daemon_msg "Restarting $DESC" "$NAME"
+    do_stop
+    case "$?" in
+      0|1)
+        do_start
+        case "$?" in
+          0) log_end_msg 0 ;;
+          1) log_end_msg 1 ;; # Old process is still running
+          *) log_end_msg 1 ;; # Failed to start
+        esac
+        ;;
+      *)
+    # Failed to stop
+  log_end_msg 1
+  ;;
+    esac
+    ;;
+  status)
+  get_daemon_status
+  case "$?" in
+   0)
+    echo "$DESC is running with the pid `cat $PIDFILE`"
+    rc=0
+    ;;
+  *)
+    get_running
+    procs=$?
+    if [ $procs -eq 0 ]; then
+      echo -n "$DESC is not running"
+      if [ -f $PIDFILE ]; then
+        echo ", but the pidfile ($PIDFILE) still exists"
+        rc=1
+      else
+        echo
+        rc=3
+      fi
+
+    else
+      echo "$procs instances of jenkins are running at the moment"
+      echo "but the pidfile $PIDFILE is missing"
+      rc=0
+    fi
+
+    exit $rc
+    ;;
+  esac
+  ;;
+  *)
+    echo "Usage: $SCRIPTNAME {start|stop|status|restart|force-reload}" >&2
+    exit 3
+    ;;
+esac
+
+exit 0

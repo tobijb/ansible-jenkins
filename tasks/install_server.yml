@@ -20,25 +20,24 @@
     update_cache: yes
 
 - name: Install Jenkins
-  apt: 
-    pkg: jenkins 
+  apt:
+    pkg: jenkins
     state: latest
 
-- name: Create external directory to supporting tools 
+- name: Create external directory to supporting tools
   file:
     path: '{{ item }}'
     owner: '{{ jenkins_system_user }}'
     group: '{{ jenkins_system_group }}'
     state: directory
   with_items:
-    - '{{ jenkins_ext_root }}'
     - '{{ jenkins_ext_cli_root }}'
     - '{{ jenkins_ext_job_builder_root }}'
 
 - name: Ensure Jenkins is started and runs on startup.
-  service: 
-    name: jenkins 
-    state: started 
+  service:
+    name: jenkins
+    state: started
     enabled: yes
 
 - name: Wait for Jenkins to start up before proceeding.
@@ -88,7 +87,7 @@
   command: >
     {{ jenkins_cli }} install-plugin {{ item }}
     creates=/var/lib/jenkins/plugins/{{ item }}.jpi
-  with_flattened: 
+  with_flattened:
     - jenkins_plugins
     - jenkins_group_plugins
     - jenkins_host_plugins
@@ -104,6 +103,6 @@
     - jenkins-job-builder
 
 - name: Configure jenkins-job-builder
-  template: 
+  template:
     src: jenkins-job-builder/config.ini.j2
     dest: '{{ jenkins_ext_job_builder_config }}'

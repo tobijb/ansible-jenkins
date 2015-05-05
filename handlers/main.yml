@@ -1,4 +1,13 @@
 ---
 
 - name: restart jenkins
-  service: name=jenkins state=restarted
+  service:
+    name: jenkins
+    state: restarted
+
+- name: restart jenkins-swarm-client
+  service:
+    name: jenkins-swarm-client
+    state: restarted
+  when: jenkins_swarm_client_service is defined and
+        jenkins_swarm_client_service.changed == False

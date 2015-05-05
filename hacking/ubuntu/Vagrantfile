@@ -33,9 +33,11 @@ Vagrant.configure("2") do |config|
     config.vm.provision "ansible" do |ansible|
       ansible.playbook = "../ansible/playbooks/hacking.yml"
       ansible.verbose = 'vv'
-      ansible.extra_vars = { ansible_ssh_user: 'vagrant' }
+      ansible.extra_vars = { ansible_ssh_user: 'vagrant', jenkins_role: 'slave' }
+      #ansible.extra_vars = { ansible_ssh_user: 'vagrant', jenkins_role: 'server' }
       ansible.inventory_path = "../ansible/inventory/hosts"
-      ansible.tags = 'hacking' # Use this after the first run to speed things up a bit
+      #ansible.tags = 'hacking' # Use this after the first run to speed things up a bit
+      ansible.tags = 'jenkins-slave' # Use this after the first run to speed things up a bit
       #ansible.tags = 'dev' # Use this after the first run to speed things up a bit
     end
   end
