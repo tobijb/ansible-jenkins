@@ -13,6 +13,7 @@
   template:
     src: 'groovy/{{ item }}.groovy.j2'
     dest: '{{ jenkins_ext_groovy_root }}/{{ item }}.groovy'
+  register: jenkins_groovy_script_templates
   with_flattened:
     - check_if_security_is_enabled # Individual script used below
     - set_global_security_and_add_admin_user # Individual script used below
@@ -42,15 +43,17 @@
   command: '{{ jenkins_cli }} login --username {{ jenkins_service_user }} --password {{ jenkins_service_password }}'
   register: jenkins_cli_login
   changed_when: False
+  no_log: true
   when: jenkins_configure_auth_result is defined
 
 - name: Run Groovy scripts using jenkins-cli
   command: '{{ jenkins_cli }} groovy {{ jenkins_ext_groovy_root }}/{{ item }}.groovy'
-  changed_when: False
   with_flattened:
     - jenkins_groovy_scripts
     - jenkins_group_groovy_scripts
     - jenkins_host_groovy_scripts
+  when: jenkins_groovy_script_templates is defined and
+        jenkins_groovy_script_templates.changed
 
 - name: Logout of Jenkins
   command: '{{ jenkins_cli }} logout'

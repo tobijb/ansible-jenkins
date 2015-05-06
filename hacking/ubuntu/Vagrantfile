@@ -21,6 +21,7 @@ Vagrant.configure("2") do |config|
       v.memory = 1024
       v.cpus = 2
     end
+
     config.landrush.host 'ci.vagrant.dev', '192.168.33.99'
 
     # Every Vagrant virtual environment requires a box to build off of.
@@ -35,7 +36,7 @@ Vagrant.configure("2") do |config|
     config.vm.provision "ansible" do |ansible|
       ansible.playbook = "../ansible/playbooks/hacking.yml"
       ansible.verbose = 'vv'
-      ansible.extra_vars = { ansible_ssh_user: 'vagrant', jenkins_service_name: 'ubuntu1404' }
+      ansible.extra_vars = { ansible_ssh_user: 'vagrant' }
       ansible.inventory_path = "../ansible/inventory/hosts"
       #ansible.tags = 'hacking' # Use this after the first run to speed things up a bit
     end

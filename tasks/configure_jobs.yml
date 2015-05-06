@@ -19,6 +19,7 @@
     update: True
     accept_hostkey: True
     version: '{{ item.version | default("HEAD") }}'
+  register: jenkins_job_builder_git_clone
   with_flattened:
     - jenkins_job_builder_repos
 
@@ -27,3 +28,5 @@
   with_subelements:
     - jenkins_job_builder_repos
     - filters
+  when: jenkins_job_builder_git_clone is defined and
+        jenkins_job_builder_git_clone.changed
