@@ -41,7 +41,7 @@
     enabled: yes
 
 - name: Wait for Jenkins to start up before proceeding.
-  shell: curl --head --silent {{ jenkins_url }}/cli/
+  shell: curl --head --silent {{ jenkins_internal_service_url }}/cli/
   register: result
   until: result.stdout.find("200 OK") != -1
   retries: "{{ jenkins_connection_retries }}"
@@ -50,7 +50,7 @@
 
 - name: Get the jenkins-cli jarfile from the Jenkins server.
   get_url:
-    url: "{{ jenkins_url }}/jnlpJars/jenkins-cli.jar"
+    url: "{{ jenkins_internal_service_url }}/jnlpJars/jenkins-cli.jar"
     dest: "{{ jenkins_ext_cli_root }}/jenkins-cli"
     owner: '{{ jenkins_system_user }}'
     group: '{{ jenkins_system_group }}'
@@ -59,8 +59,8 @@
   retries: "{{ jenkins_connection_retries }}"
   delay: "{{ jenkins_connection_delay }}"
 
-- name: Set persistent command for jenkins-cli actions
-  set_fact: jenkins_cli="java -jar {{ jenkins_jarfile_get.dest }} -s {{ jenkins_url }}"
+- name: Set jenkins_cli fact for use in other tasks
+  set_fact: jenkins_cli='java -jar {{ jenkins_jarfile_get.dest }} -s {{ jenkins_internal_service_url }}'
 
 # Jenkins doesn't allow updates via CLI, though that is required before plugins
 # can be installed via CLI. See: https://gist.github.com/rowan-m/1026918

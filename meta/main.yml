@@ -3,9 +3,13 @@
 dependencies:
   - role: debops.secret
 
+  - role: debops.apt
+    apt_repositories:
+      - repo: 'ppa:nginx/stable'
+        state: 'present'
+
   - role: debops.etc_services
     etc_services_dependent_list:
-
       - name: 'jenkins'
         port: '{{ jenkins_port }}'
         comment: 'Jenkins'

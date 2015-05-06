@@ -11,20 +11,48 @@
 
 - name: Generate Groovy Script template for global security and admin user
   template:
-    src: 'groovy/run_once/{{ item }}.groovy.j2'
+    src: 'groovy/{{ item }}.groovy.j2'
     dest: '{{ jenkins_ext_groovy_root }}/{{ item }}.groovy'
   with_flattened:
-    - jenkins_groovy_scripts_run_once
-    - jenkins_groovy_scripts_run_always
+    - check_if_security_is_enabled # Individual script used below
+    - set_global_security_and_add_admin_user # Individual script used below
+    - jenkins_groovy_scripts
+    - jenkins_group_groovy_scripts
+    - jenkins_host_groovy_scripts
 
-- name: Run Groovy scripts using jenkins-cli (one-time)
-  shell: '{{ jenkins_cli }} groovy {{ jenkins_ext_groovy_root }}/{{ item }}.groovy && touch {{ jenkins_ext_groovy_root }}/{{ item }}.groovy.completed'
-  args:
-    creates: '{{ jenkins_ext_groovy_root }}/{{ item }}.groovy.completed'
-  with_items: jenkins_groovy_scripts_run_once
+- name: Test if Auth is configured
+  command: '{{ jenkins_cli }} groovy {{ jenkins_ext_groovy_root }}/{{ item }}.groovy'
+  register: jenkins_auth_result
+  with_items:
+    - check_if_security_is_enabled
+  failed_when: ( jenkins_auth_result.stderr != "" ) and
+               ( 'hudson.security.AccessDeniedException2' not in jenkins_auth_result.stderr )
+  changed_when: False
+  when: jenkins_auth is defined and jenkins_auth
 
-- name: Run Groovy scripts using jenkins-cli (always)
-  shell: '{{ jenkins_cli }} groovy {{ item }}.groovy'
-  args:
-    chdir: '{{ jenkins_ext_groovy_root }}'
-  with_items: jenkins_groovy_scripts_run_always
+- name: Configure auth if it is not configured...
+  command: '{{ jenkins_cli }} groovy {{ jenkins_ext_groovy_root }}/{{ item }}.groovy'
+  register: jenkins_configure_auth_result
+  with_items:
+    - set_global_security_and_add_admin_user
+  when: ( jenkins_auth_result is defined ) and
+        ( 'hudson.security.AccessDeniedException2' not in jenkins_auth_result.stderr )
+
+- name: Login to Jenkins for the next task to run groovy
+  command: '{{ jenkins_cli }} login --username {{ jenkins_service_user }} --password {{ jenkins_service_password }}'
+  register: jenkins_cli_login
+  changed_when: False
+  when: jenkins_configure_auth_result is defined
+
+- name: Run Groovy scripts using jenkins-cli
+  command: '{{ jenkins_cli }} groovy {{ jenkins_ext_groovy_root }}/{{ item }}.groovy'
+  changed_when: False
+  with_flattened:
+    - jenkins_groovy_scripts
+    - jenkins_group_groovy_scripts
+    - jenkins_host_groovy_scripts
+
+- name: Logout of Jenkins
+  command: '{{ jenkins_cli }} logout'
+  changed_when: False
+  when: jenkins_cli_login is defined

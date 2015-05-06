@@ -1,0 +1,22 @@
+import jenkins.model.*
+
+//
+// Script Vars
+def mailer_descriptor = Jenkins.getInstance().getDescriptor('hudson.tasks.Mailer')
+def jlc = JenkinsLocationConfiguration.get()
+
+//
+// Main
+
+// Setup the global admin email
+jlc.setAdminAddress('{{ jenkins_admin_name }} <{{ jenkins_admin_email }}>')
+
+// Setup Global SMTP
+{% if jenkins_smtp_user is defined and jenkins_smtp_pass is defined %}
+mailer_descriptor.setSmtpAuth('{{ jenkins_smtp_user }}', '{{ jenkins_smtp_pass }}')
+{% endif %}
+mailer_descriptor.setDefaultSuffix('{{ jenkins_smtp_default_suffix }}')
+mailer_descriptor.setReplyToAddress('{{ jenkins_smtp_reply_to_address }}')
+mailer_descriptor.setSmtpHost('{{ jenkins_smtp_host }}')
+mailer_descriptor.setUseSsl('{{ jenkins_smtp_use_ssl }}'.toBoolean())
+mailer_descriptor.setSmtpPort('{{ jenkins_smtp_port }}')

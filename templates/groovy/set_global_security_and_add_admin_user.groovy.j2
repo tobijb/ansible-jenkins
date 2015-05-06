@@ -11,11 +11,14 @@ try {
   if (instance.isUseSecurity()) {
     println(">>>>>>>> Security has already been configured.. skipping..")
   } else {
+    def authStrategy = new FullControlOnceLoggedInAuthorizationStrategy()
     def hudsonRealm = new HudsonPrivateSecurityRealm(false)
     println(">>>>>>>> Adding User " + user + " and enabling Global Security")
     hudsonRealm.createAccount(user, password)
     instance.setSecurityRealm(hudsonRealm)
+    instance.setAuthorizationStrategy(authStrategy)
     instance.save()
+    println("success")
   }
 } catch(e) {
   println("ERROR:\n" + e.msg)

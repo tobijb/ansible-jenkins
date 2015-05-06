@@ -7,4 +7,3 @@
 - { include: server.yml, when: jenkins_role == 'server', tags: jenkins-server }
 - { include: slave.yml,  when: jenkins_role == 'slave', tags: jenkins-slave }
 
-

@@ -1,31 +1,65 @@
 ---
 
-#-- Required
+#-- User Defined (Frequent)
 jenkins_dependencies: True
-
+jenkins_auth: True
 jenkins_role: 'server' # 'server' or 'slave' or define your own..
+
+# SMTP
+jenkins_admin_name: 'First Last'
+jenkins_admin_email: 'noreply@tobi.com'
+jenkins_smtp_host: 'localhost'
+jenkins_smtp_port: '25'
+jenkins_smtp_use_ssl: False
+jenkins_smtp_default_suffix: '@{{ ansible_domain }}'
+jenkins_smtp_reply_to_address: '{{ jenkins_admin_email }}'
 
 jenkins_system_user: 'jenkins'
 jenkins_system_group: 'jenkins'
 jenkins_system_uid_gid: '1998'
 
-jenkins_service_user: 'default_admin'
-jenkins_service_password: 'password'
+jenkins_job_builder_repos:
+  - name: 'example'
+    repo: 'https://github.com/tobijb/jenkins-job-builder-example.git'
+    jenkins_url: '{{ jenkins_internal_service_url }}'
+    jobs_dir: 'jobs'
+    filters:
+      - 'development*'
 
-#-- Try this hard to connect to Jenkins after startup
+jenkins_group_groovy_scripts: []
+jenkins_host_groovy_scripts: []
+jenkins_group_plugins: []
+jenkins_host_plugins: []
+
+#-- User Defined (Infrequent)
+# Try this hard to connect to Jenkins after startup
 jenkins_connection_delay: 5
 jenkins_connection_retries: 10
 
-jenkins_service_name: 'ci'
+# External Jenkins service
+jenkins_external_service_scheme: 'https'
+jenkins_external_service_name: 'ci'
+jenkins_external_service_port: '443'
+jenkins_external_service_fqdn: '{{ jenkins_external_service_name }}.{{ ansible_domain }}'
+# This URL should be directly accessible from your browser
+jenkins_external_service_url: '{{ jenkins_external_service_scheme }}://{{ jenkins_external_service_fqdn }}:{{ jenkins_external_service_port }}'
 
-jenkins_hostname: '{{ jenkins_service_name }}.{{ ansible_domain }}'  # This URL should be directly accessible from your browser
-jenkins_port: '8080'           # Not implemented yet
-jenkins_scheme: 'http'           # Not implemented yet
+# Internal Jenkins Service
+jenkins_internal_service_scheme: '{{ jenkins_external_service_scheme }}'
+jenkins_internal_service_name: '{{ jenkins_external_service_name }}'
+jenkins_internal_service_fqdn: '{{ jenkins_external_service_fqdn }}'
+jenkins_internal_service_port: '{{ jenkins_external_service_port }}'
+# This URL is used by jenkins-cli, jenkins-jobs, and ansible
+jenkins_internal_service_url: '{{ jenkins_internal_service_scheme }}://{{ jenkins_internal_service_fqdn }}:{{ jenkins_internal_service_port }}'
 
-jenkins_url: '{{ jenkins_scheme }}://{{ jenkins_hostname }}:{{ jenkins_port }}'
-
-#-- Jenkins Service Options
+# Global Jenkins Service
+jenkins_service_user: 'admin'
+jenkins_service_lookup_dir: '{{ secret }}/credentials/{{ jenkins_external_service_name }}.{{ ansible_domain }}/jenkins/{{ jenkins_service_user }}'
+jenkins_service_password: '{{ lookup("password", jenkins_service_lookup_dir + "/password chars=ascii,numbers") }}'
 jenkins_max_memory: '1024m'    # http://stackoverflow.com/questions/14763079/what-are-the-xms-and-xmx-parameters-when-starting-jvms
+jenkins_server_for_upstream: 'localhost:8080'
+
+#-- System Defined (Very Infrequent)
 
 # Standard Jenkins Plugins
 jenkins_plugins:
@@ -35,25 +69,13 @@ jenkins_plugins:
   - jobConfigHistory
   - audit-trail
   - swarm
-jenkins_group_plugins: []
-jenkins_host_plugins: []
 
-# -- Totally optional --
+
+#-- Jenkins Job Builder
 jenkins_hipchat_token: ""
-
-jenkins_groovy_scripts_run_once:
-  - configure_global_security_and_add_default_user
-jenkins_groovy_scripts_run_always: []
-
-# This will run test and update actions in jenkins-jobs on the instance
-# defined in jenkins_url.
-jenkins_job_builder_repos:
-  - name: 'example'
-    repo: 'https://github.com/tobijb/jenkins-job-builder-example.git'
-    jenkins_url: '{{ jenkins_url }}'
-    jobs_dir: 'jobs'
-    filters:
-      - 'development*'
+#-- Jenkins Groovy Script to run for against the Jenkins instance
+jenkins_groovy_scripts:
+  - set_global_email_configuration
 
 # -- Jenkins task variables.. Shouldn't need to change any of these --
 jenkins_repo_url: 'deb http://pkg.jenkins-ci.org/debian binary/'
@@ -72,7 +94,9 @@ jenkins_job_builder_config_allow_duplicates: True
 # -- Jenkins Swarm related
 jenkins_ext_jenkins_swarm_root: '{{ jenkins_ext_root }}/jenkins-swarm-client'
 jenkins_swarm_client_url: 'http://maven.jenkins-ci.org/content/repositories/releases/org/jenkins-ci/plugins/swarm-client/1.24/swarm-client-1.24-jar-with-dependencies.jar'
+# This needs to be split out and joined in the task/template for group and host
 jenkins_swarm_labels_space_separated: 'swarm'
+# You can override this at the host var level
 jenkins_swarm_slave_executors: 1
 
 # -- Nginx Settings --
@@ -82,5 +106,6 @@ jenkins_nginx_auth_realm: 'Jenkins access is restricted'
 jenkins_nginx_access_policy: ""
 # nginx client_max_body_size value
 jenkins_nginx_client_max_body_size: '5m'
-# nginx - gitlab proxy timeout in seconds
+# nginx - Jenkins proxy timeout in seconds
 jenkins_nginx_proxy_timeout: '300'
+

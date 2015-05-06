@@ -38,7 +38,7 @@ JENKINS_SWARM_PASSWORD_VAR="JENKINS_SWARM_PASSWORD"
 JENKINS_USER={{ jenkins_system_user }}
 JENKINS_SWARM_JAR={{ jenkins_swarm_client.dest }}
 JENKINS_SWARM_ARGS="\
-      -master {{ jenkins_url }} \
+      -master {{ jenkins_internal_service_url }} \
       -executors {{ jenkins_swarm_slave_executors }} \
       -retry {{ jenkins_swarm_retries }}
       -fsroot ${JENKINS_HOME} \

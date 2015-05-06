@@ -1,24 +1,23 @@
-# ---- Jenkins User ----
-#jenkins_user:
-
+# ---- Apt Repo for Nginx
+#deb http://nginx.org/packages/debian/ codename nginx
+#deb-src http://nginx.org/packages/debian/ codename nginx
 
 # ---- Web server ----
 
-# nginx upstream configuration for jenkins service
+# nginx upstream configuration for Jenkins service
 jenkins_nginx_upstream:
   enabled: True
   type: 'rails'
   name: 'jenkins'
-  server: '{{ jenkins_hostname }}:8080'
+  server: '{{ jenkins_server_for_upstream }}'
 
-# nginx server configuration for GitLab
+# nginx server configuration for Jenkins
 jenkins_nginx_server:
   by_role: 'debops.jenkins'
   enabled: True
   type: 'rails'
-  name: 
-    - '{{jenkins_hostname}}'
-  #root: '{{ jenkins_ce_git_checkout }}/public'
+  name:
+    - '{{ jenkins_external_service_fqdn }}'
 
   access_policy: '{{ jenkins_nginx_access_policy }}'
   auth_basic_realm: '{{ jenkins_nginx_auth_realm }}'

@@ -1,0 +1,16 @@
+import java.util.logging.Logger
+import jenkins.model.*
+import hudson.security.*
+
+def instance = Jenkins.getInstance()
+
+try {
+  if (instance.isUseSecurity()) {
+    println(">>>>>>>> isUseSecurity=true")
+  } else {
+    println(">>>>>>>> isUseSecurity=false")
+  }
+} catch(e) {
+  println("ERROR:\n" + e.msg)
+  System.exit(1)
+}

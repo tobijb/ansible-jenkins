@@ -21,13 +21,9 @@
     version: '{{ item.version | default("HEAD") }}'
   with_flattened:
     - jenkins_job_builder_repos
-  tags:
-    - dev
 
 - name: Run jenkins-job-builder against the configured instance
   shell: "{{ jenkins_job_builder }} update {{ jenkins_ext_job_builder_repos_dir }}/{{ item.0.name }}/{{ item.0.jobs_dir }} {{ item.1 }}"
   with_subelements:
     - jenkins_job_builder_repos
     - filters
-  tags:
-    - dev
