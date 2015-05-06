@@ -20,3 +20,7 @@ mailer_descriptor.setReplyToAddress('{{ jenkins_smtp_reply_to_address }}')
 mailer_descriptor.setSmtpHost('{{ jenkins_smtp_host }}')
 mailer_descriptor.setUseSsl('{{ jenkins_smtp_use_ssl }}'.toBoolean())
 mailer_descriptor.setSmtpPort('{{ jenkins_smtp_port }}')
+
+// IMPORTANT!
+mailer_descriptor.save()
+jlc.save()

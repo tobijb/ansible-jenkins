@@ -15,8 +15,8 @@
     dest: '{{ jenkins_ext_groovy_root }}/{{ item }}.groovy'
   register: jenkins_groovy_script_templates
   with_flattened:
-    - check_if_security_is_enabled # Individual script used below
-    - set_global_security_and_add_admin_user # Individual script used below
+    - '{{ jenkins_security_check_groovy_script }}' # Individual script used below
+    - '{{ jenkins_security_enable_groovy_script }}' # Individual script used below
     - jenkins_groovy_scripts
     - jenkins_group_groovy_scripts
     - jenkins_host_groovy_scripts
@@ -25,7 +25,7 @@
   command: '{{ jenkins_cli }} groovy {{ jenkins_ext_groovy_root }}/{{ item }}.groovy'
   register: jenkins_auth_result
   with_items:
-    - check_if_security_is_enabled
+    - '{{ jenkins_security_check_groovy_script }}'
   failed_when: ( jenkins_auth_result.stderr != "" ) and
                ( 'hudson.security.AccessDeniedException2' not in jenkins_auth_result.stderr )
   changed_when: False
@@ -35,7 +35,7 @@
   command: '{{ jenkins_cli }} groovy {{ jenkins_ext_groovy_root }}/{{ item }}.groovy'
   register: jenkins_configure_auth_result
   with_items:
-    - set_global_security_and_add_admin_user
+    - '{{ jenkins_security_enable_groovy_script }}'
   when: ( jenkins_auth_result is defined ) and
         ( 'hudson.security.AccessDeniedException2' not in jenkins_auth_result.stderr )
 
@@ -45,6 +45,16 @@
   changed_when: False
   no_log: true
   when: jenkins_configure_auth_result is defined
+
+- name: Install Jenkins plugins.
+  command: >
+    {{ jenkins_cli }} install-plugin {{ item }}
+    creates=/var/lib/jenkins/plugins/{{ item }}.jpi
+  with_flattened:
+    - jenkins_plugins
+    - jenkins_group_plugins
+    - jenkins_host_plugins
+  notify: restart jenkins
 
 - name: Run Groovy scripts using jenkins-cli
   command: '{{ jenkins_cli }} groovy {{ jenkins_ext_groovy_root }}/{{ item }}.groovy'

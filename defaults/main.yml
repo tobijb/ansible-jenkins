@@ -14,10 +14,15 @@ jenkins_smtp_use_ssl: False
 jenkins_smtp_default_suffix: '@{{ ansible_domain }}'
 jenkins_smtp_reply_to_address: '{{ jenkins_admin_email }}'
 
+# Git
+jenkins_git_config_name: 'First Last'
+jenkins_git_config_email: 'automated.user@tobi.com'
+
 jenkins_system_user: 'jenkins'
 jenkins_system_group: 'jenkins'
 jenkins_system_uid_gid: '1998'
 
+# Configure Jenkins withe jobs from the following repos
 jenkins_job_builder_repos:
   - name: 'example'
     repo: 'https://github.com/tobijb/jenkins-job-builder-example.git'
@@ -30,6 +35,9 @@ jenkins_group_groovy_scripts: []
 jenkins_host_groovy_scripts: []
 jenkins_group_plugins: []
 jenkins_host_plugins: []
+# Overload these two if you want to have different security configurations
+jenkins_security_check_groovy_script: check_if_security_is_enabled
+jenkins_security_enable_groovy_script: set_global_security_and_add_admin_user
 
 #-- User Defined (Infrequent)
 # Try this hard to connect to Jenkins after startup
@@ -69,13 +77,15 @@ jenkins_plugins:
   - jobConfigHistory
   - audit-trail
   - swarm
-
+  - email-ext
+  - build-timeout
 
 #-- Jenkins Job Builder
 jenkins_hipchat_token: ""
 #-- Jenkins Groovy Script to run for against the Jenkins instance
 jenkins_groovy_scripts:
   - set_global_email_configuration
+  - set_global_git_configuration # Must have git plugin above..
 
 # -- Jenkins task variables.. Shouldn't need to change any of these --
 jenkins_repo_url: 'deb http://pkg.jenkins-ci.org/debian binary/'

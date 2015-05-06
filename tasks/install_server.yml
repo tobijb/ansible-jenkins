@@ -83,16 +83,6 @@
     group: '{{ jenkins_system_group }}'
     mode: 0755
 
-- name: Install Jenkins plugins.
-  command: >
-    {{ jenkins_cli }} install-plugin {{ item }}
-    creates=/var/lib/jenkins/plugins/{{ item }}.jpi
-  with_flattened:
-    - jenkins_plugins
-    - jenkins_group_plugins
-    - jenkins_host_plugins
-  notify: restart jenkins
-
 - name: Install jenkins-job-builder
   pip:
     name: '{{ item }}'

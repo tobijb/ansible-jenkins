@@ -17,5 +17,7 @@ installed Jenkins instance if new patches are pushed to the repository.
 ### Special Thanks
 - Geerlingguy for ansible-role-jenkins [GitHub](https://github.com/geerlingguy/ansible-role-jenkins)
 - Franklinkim [Github](https://github.com/weareinteractive/ansible-nginx/blob/master/Vagrantfile)
+- phhalliday [Link](http://pghalliday.com/jenkins/groovy/sonar/chef/configuration/management/2014/09/21/some-useful-jenkins-groovy-scripts.html)
+- Azulinho [Github](https://github.com/Azulinho/ansible-jenkins-showcase)
 
 License: [GPLv3](https://tldrlegal.com/license/gnu-general-public-license-v3-%28gpl-3%29)
