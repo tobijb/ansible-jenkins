@@ -6,8 +6,8 @@ jenkins_auth: True
 jenkins_role: 'server' # 'server' or 'slave' or define your own..
 
 # SMTP
-jenkins_admin_name: 'First Last'
-jenkins_admin_email: 'noreply@tobi.com'
+jenkins_admin_name: 'Jenkins CI'
+jenkins_admin_email: 'jenkins@{{ ansible_domain }}'
 jenkins_smtp_host: 'localhost'
 jenkins_smtp_port: '25'
 jenkins_smtp_use_ssl: False
@@ -15,8 +15,8 @@ jenkins_smtp_default_suffix: '@{{ ansible_domain }}'
 jenkins_smtp_reply_to_address: '{{ jenkins_admin_email }}'
 
 # Git
-jenkins_git_config_name: 'First Last'
-jenkins_git_config_email: 'automated.user@tobi.com'
+jenkins_git_config_name: 'Jenkins CI'
+jenkins_git_config_email: 'jenkins@{{ ansible_domain }}'
 
 jenkins_system_user: 'jenkins'
 jenkins_system_group: 'jenkins'
