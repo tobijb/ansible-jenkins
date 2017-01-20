@@ -1,7 +1,7 @@
 ---
 
 # Common prerequsites
-- { include: common.yml, jenkins-common }
+- { include: common.yml, tags: jenkins-common }
 
 # Install and Configure Jenkins according to the defined role
 - { include: server.yml, when: jenkins_role == 'server', tags: jenkins-server }
